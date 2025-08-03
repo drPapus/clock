@@ -73,6 +73,11 @@
   </div>
   <div id="tijdTekst">Versleep de wijzers</div>
 
+  <div id="socialLinks" style="margin-top: 20px; text-align: center;">
+  <a href="https://tiktok.com/@gerardencausse" target="_blank">📱 TikTok</a> |
+  <a href="https://t.me/GerardPapus" target="_blank">💬 Telegram</a>
+</div>
+
   <script>
     let currentHourBase = 3; // default to 3:00
     const clock = document.querySelector(".clock");
@@ -148,39 +153,39 @@
       tijdTekst.textContent = timeToDutchText(h, m);
     }
 
-    // function rotateHand(e, hand) {
-    //   const dx = e.clientX - centerX;
-    //   const dy = e.clientY - centerY;
-    //   let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
-    //   if (angle < 0) angle += 360;
-    //   hand.style.transform = `rotate(${angle}deg)`;
-    //   updateText();
-    // }
+    function rotateHand(e, hand) {
+      const dx = e.clientX - centerX;
+      const dy = e.clientY - centerY;
+      let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+      if (angle < 0) angle += 360;
+      hand.style.transform = `rotate(${angle}deg)`;
+      updateText();
+    }
 
-  function rotateHand(e, hand) {
-  const dx = e.clientX - centerX;
-  const dy = e.clientY - centerY;
-  let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
-  if (angle < 0) angle += 360;
+//   function rotateHand(e, hand) {
+//   const dx = e.clientX - centerX;
+//   const dy = e.clientY - centerY;
+//   let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+//   if (angle < 0) angle += 360;
 
-  if (hand === minuteHand) {
-    // Rotate minute hand
-    minuteHand.style.transform = `rotate(${angle}deg)`;
+//   if (hand === minuteHand) {
+//     // Rotate minute hand
+//     minuteHand.style.transform = `rotate(${angle}deg)`;
 
-    const minute = angle / 6; // 0–59.999
-    const hourAngle = parseFloat(hourHand.style.transform.match(/rotate\\(([-0-9.]+)deg\\)/)?.[1] || "0");
-    const hourIndex = (hourAngle / 30) % 12;
+//     const minute = angle / 6; // 0–59.999
+//     const hourAngle = parseFloat(hourHand.style.transform.match(/rotate\\(([-0-9.]+)deg\\)/)?.[1] || "0");
+//     const hourIndex = (hourAngle / 30) % 12;
 
-    // Update hour hand to follow minutes
-    const fullHourAngle = (Math.floor(hourIndex) * 30) + (minute / 60) * 30;
-    hourHand.style.transform = `rotate(${fullHourAngle}deg)`;
-  } else {
-    // Manually rotate hour hand
-    hourHand.style.transform = `rotate(${angle}deg)`;
-  }
+//     // Update hour hand to follow minutes
+//     const fullHourAngle = (Math.floor(hourIndex) * 30) + (minute / 60) * 30;
+//     hourHand.style.transform = `rotate(${fullHourAngle}deg)`;
+//   } else {
+//     // Manually rotate hour hand
+//     hourHand.style.transform = `rotate(${angle}deg)`;
+//   }
 
-  updateText();
-}
+//   updateText();
+// }
 
 [hourHand, minuteHand].forEach(hand => {
   hand.addEventListener("mousedown", e => {

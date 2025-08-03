@@ -74,6 +74,7 @@
   <div id="tijdTekst">Versleep de wijzers</div>
 
   <script>
+    let currentHourBase = 3; // default to 3:00
     const clock = document.querySelector(".clock");
     const hourHand = document.getElementById("hourHand");
     const minuteHand = document.getElementById("minuteHand");
@@ -85,12 +86,12 @@
     const centerX = clockRect.left + clockRect.width / 2;
     const centerY = clockRect.top + clockRect.height / 2;
 
-    function angleToTime(hourAngle, minuteAngle) {
-      let hour = Math.round(hourAngle / 30) % 12;
-      let minute = Math.round(minuteAngle / 6) % 60;
-      if (hour === 0) hour = 12;
-      return [hour, minute];
-    }
+   function angleToTime(hourAngle, minuteAngle) {
+  const minute = Math.round(minuteAngle / 6) % 60;
+  const hourFloat = (hourAngle / 30) % 12;
+  const hour = Math.floor(hourFloat);
+  return [hour === 0 ? 12 : hour, minute];
+}
 
   function timeToDutchText(h, m) {
   const hours = [
@@ -156,28 +157,25 @@
     //   updateText();
     // }
 
-    function rotateHand(e, hand) {
+  function rotateHand(e, hand) {
   const dx = e.clientX - centerX;
   const dy = e.clientY - centerY;
   let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
   if (angle < 0) angle += 360;
 
   if (hand === minuteHand) {
-    // Minuten draaien
+    // Rotate minute hand
     minuteHand.style.transform = `rotate(${angle}deg)`;
 
-    // Bereken tijd
-    const minute = Math.round(angle / 6) % 60;
-    const hourAngle = parseFloat(hourHand.style.transform.match(/rotate\\(([-0-9.]+)deg\\)/)?.[1] || 0);
-    let baseHour = Math.floor(hourAngle / 30) % 12;
-    if (baseHour < 0) baseHour += 12;
+    const minute = angle / 6; // 0–59.999
+    const hourAngle = parseFloat(hourHand.style.transform.match(/rotate\\(([-0-9.]+)deg\\)/)?.[1] || "0");
+    const hourIndex = (hourAngle / 30) % 12;
 
-    // Draai urenwijzer proportioneel
-    const hourFromMinute = (minute / 60) * 30;
-    const newHourAngle = baseHour * 30 + hourFromMinute;
-    hourHand.style.transform = `rotate(${newHourAngle}deg)`;
+    // Update hour hand to follow minutes
+    const fullHourAngle = (Math.floor(hourIndex) * 30) + (minute / 60) * 30;
+    hourHand.style.transform = `rotate(${fullHourAngle}deg)`;
   } else {
-    // Uren draaien handmatig
+    // Manually rotate hour hand
     hourHand.style.transform = `rotate(${angle}deg)`;
   }
 

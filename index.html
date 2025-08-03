@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sleepbare Klok in het Nederlands</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: #f0f0f0;
+      font-family: sans-serif;
+    }
+    .clock {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      border: 10px solid #333;
+      border-radius: 50%;
+      background: white;
+    }
+    .hand {
+      position: absolute;
+      bottom: 50%;
+      left: 50%;
+      transform-origin: bottom center;
+      background: #333;
+      cursor: pointer;
+    }
+    .hour {
+      width: 8px;
+      height: 80px;
+    }
+    .minute {
+      width: 4px;
+      height: 120px;
+      background: #666;
+    }
+    .center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 12px;
+      height: 12px;
+      background: #333;
+      border-radius: 50%;
+    }
+    #tijdTekst {
+      margin-top: 20px;
+      font-size: 1.5rem;
+    }
+
+    .number {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  text-align: center;
+  font-weight: bold;
+  transform: translate(-50%, -50%);
+}
+  </style>
+</head>
+<body>
+  <div class="clock">
+    <div class="hand hour" id="hourHand"></div>
+    <div class="hand minute" id="minuteHand"></div>
+    <div class="center"></div>
+  </div>
+  <div id="tijdTekst">Versleep de wijzers</div>
+
+  <script>
+    const clock = document.querySelector(".clock");
+    const hourHand = document.getElementById("hourHand");
+    const minuteHand = document.getElementById("minuteHand");
+    const tijdTekst = document.getElementById("tijdTekst");
+
+    let dragging = null;
+
+    const clockRect = document.querySelector(".clock").getBoundingClientRect();
+    const centerX = clockRect.left + clockRect.width / 2;
+    const centerY = clockRect.top + clockRect.height / 2;
+
+    function angleToTime(hourAngle, minuteAngle) {
+      let hour = Math.round(hourAngle / 30) % 12;
+      let minute = Math.round(minuteAngle / 6) % 60;
+      if (hour === 0) hour = 12;
+      return [hour, minute];
+    }
+
+  function timeToDutchText(h, m) {
+  const hours = [
+    "twaalf", "een", "twee", "drie", "vier", "vijf",
+    "zes", "zeven", "acht", "negen", "tien", "elf", "twaalf"
+  ];
+  const nextHour = (h % 12) + 1;
+
+  if (m === 0) return `Het is ${hours[h]} uur`;
+  if (m === 15) return `Het is kwart over ${hours[h]}`;
+  if (m === 30) return `Het is half ${hours[nextHour]}`;
+  if (m === 45) return `Het is kwart voor ${hours[nextHour]}`;
+
+  if (m < 15) return `Het is ${m} over ${hours[h]}`;
+  if (m > 45) return `Het is ${60 - m} voor ${hours[nextHour]}`;
+
+  // Special informal expressions for 16–44
+  if (m === 25) return `Het is 5 voor half ${hours[nextHour]}`;
+  if (m === 20) return `Het is 10 voor half ${hours[nextHour]}`;
+  if (m === 35) return `Het is 5 over half ${hours[nextHour]}`;
+  if (m === 40) return `Het is 10 over half ${hours[nextHour]}`;
+
+  if (m === 24) return `Het is 6 voor half ${hours[nextHour]}`;
+  if (m === 26) return `Het is 4 voor half ${hours[nextHour]}`;
+  if (m === 34) return `Het is 4 over half ${hours[nextHour]}`;
+  if (m === 36) return `Het is 6 over half ${hours[nextHour]}`;
+
+  // fallback
+  return `Het is ${m} minuten over ${hours[h]}`;
+}
+
+    function createNumbers() {
+  for (let i = 1; i <= 12; i++) {
+    const number = document.createElement("div");
+    number.classList.add("number");
+    number.textContent = i;
+
+    const angle = (i * 30 - 90) * (Math.PI / 180); // convert to radians
+    const radius = 130; // slightly inside the clock face
+    const x = 150 + radius * Math.cos(angle);
+    const y = 150 + radius * Math.sin(angle);
+
+    number.style.left = `${x}px`;
+    number.style.top = `${y}px`;
+
+    clock.appendChild(number);
+  }
+}
+
+    function updateText() {
+      const hourDeg = parseFloat(hourHand.style.transform.match(/rotate\(([-0-9.]+)deg\)/)?.[1] || 0);
+      const minuteDeg = parseFloat(minuteHand.style.transform.match(/rotate\(([-0-9.]+)deg\)/)?.[1] || 0);
+      const [h, m] = angleToTime(hourDeg, minuteDeg);
+      tijdTekst.textContent = timeToDutchText(h, m);
+    }
+
+    // function rotateHand(e, hand) {
+    //   const dx = e.clientX - centerX;
+    //   const dy = e.clientY - centerY;
+    //   let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+    //   if (angle < 0) angle += 360;
+    //   hand.style.transform = `rotate(${angle}deg)`;
+    //   updateText();
+    // }
+
+    function rotateHand(e, hand) {
+  const dx = e.clientX - centerX;
+  const dy = e.clientY - centerY;
+  let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+  if (angle < 0) angle += 360;
+
+  if (hand === minuteHand) {
+    // Minuten draaien
+    minuteHand.style.transform = `rotate(${angle}deg)`;
+
+    // Bereken tijd
+    const minute = Math.round(angle / 6) % 60;
+    const hourAngle = parseFloat(hourHand.style.transform.match(/rotate\\(([-0-9.]+)deg\\)/)?.[1] || 0);
+    let baseHour = Math.floor(hourAngle / 30) % 12;
+    if (baseHour < 0) baseHour += 12;
+
+    // Draai urenwijzer proportioneel
+    const hourFromMinute = (minute / 60) * 30;
+    const newHourAngle = baseHour * 30 + hourFromMinute;
+    hourHand.style.transform = `rotate(${newHourAngle}deg)`;
+  } else {
+    // Uren draaien handmatig
+    hourHand.style.transform = `rotate(${angle}deg)`;
+  }
+
+  updateText();
+}
+
+[hourHand, minuteHand].forEach(hand => {
+  hand.addEventListener("mousedown", e => {
+    dragging = hand;
+    e.preventDefault();
+  });
+
+  hand.addEventListener("touchstart", e => {
+    dragging = hand;
+    e.preventDefault();
+  });
+});
+
+document.addEventListener("mousemove", e => {
+  if (dragging) rotateHand(e, dragging);
+});
+
+document.addEventListener("mouseup", () => {
+  dragging = null;
+});
+
+document.addEventListener("touchmove", e => {
+  if (dragging && e.touches.length > 0) {
+    rotateHand(e.touches[0], dragging);
+  }
+});
+
+document.addEventListener("touchend", () => {
+  dragging = null;
+});
+
+    // document.addEventListener("mousemove", e => {
+    //   if (dragging) {
+    //     rotateHand(e, dragging);
+    //   }
+    // });
+
+    // document.addEventListener("mouseup", () => {
+    //   dragging = null;
+    // });
+
+    // Init hands at 3:00
+    hourHand.style.transform = "rotate(90deg)";
+    minuteHand.style.transform = "rotate(0deg)";
+    updateText();
+    createNumbers();
+  </script>
+</body>
+</html>
